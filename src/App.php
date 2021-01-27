@@ -31,6 +31,11 @@ class App
         } while (false !== $input && !$this->isQuit($input));
     }
 
+    /**
+     * @param array $input
+     * @return mixed
+     * @throws Exception
+     */
     private function process(array $input)
     {
         $connections = $this->getConnections();
@@ -96,10 +101,10 @@ class App
         ];
     }
 
-    private function getConnections()
+    private function getConnections(): array
     {
         if (!count($this->__connections)) {
-            $reader = Reader::createFromPath($this->file, 'r');
+            $reader = Reader::createFromPath($this->file);
             $paths = $reader->getRecords();
 
             foreach ($paths as $path) {
