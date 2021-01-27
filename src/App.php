@@ -18,8 +18,6 @@ class App
         $rl = new Readline();
         do {
             $input = $rl->readLine("What is the input: ");
-            echo "\n";
-
             try {
                 $parsed = $this->parseInput($input);
                 list($path, $time) = $this->process($parsed);
@@ -33,12 +31,48 @@ class App
         } while (false !== $input && !$this->isQuit($input));
     }
 
-    private function process(array $parsed)
+    private function process(array $input)
     {
         $connections = $this->getConnections();
-        $path = ['A', 'B', 'C'];
-        $time = 500;
-        return [$path, $time];
+
+        $result = $this->find($connections, [$input['from']], 0, $input);
+
+        if (count($result)) {
+            return reset($result);
+        }
+
+        throw new Exception('No solution found');
+    }
+
+    private function find($connections, $chain, $total_time, $input): array
+    {
+        $output = [];
+        foreach ($connections as $connection) {
+            if (in_array($connection['to'], $chain)) {
+                continue;
+            }
+
+            $mid = end($chain);
+            if ($mid != $connection['from']) {
+                continue;
+            }
+
+            $new_total_time = $total_time + $connection['latency'];
+            if ($new_total_time > $input['latency']) {
+                continue;
+            }
+
+            $new_chain = array_merge($chain, [$connection['to']]);
+
+            if ($connection['to'] == $input['to']) {
+                $output[] = [$new_chain, $new_total_time];
+            } else {
+                $output = array_merge($output,
+                    $this->find($connections, $new_chain, $new_total_time,
+                        $input));
+            }
+        }
+        return $output;
     }
 
     private function isQuit($input): bool
@@ -72,6 +106,11 @@ class App
                 $this->__connections[] = [
                     'from' => $path[0],
                     'to' => $path[1],
+                    'latency' => $path[2],
+                ];
+                $this->__connections[] = [
+                    'from' => $path[1],
+                    'to' => $path[0],
                     'latency' => $path[2],
                 ];
             }
