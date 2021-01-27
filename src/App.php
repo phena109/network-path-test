@@ -6,28 +6,14 @@ namespace phena109;
 use Exception;
 use Hoa\Console\Readline\Readline;
 use InvalidArgumentException;
-use Iterator;
 use League\Csv\Reader;
 
 class App
 {
-    private Iterator $__paths;
+    private array $__connections = [];
     private string $file = ROOT . DS . 'data/paths.csv';
 
     public function run()
-    {
-        $paths = $this->getPaths();
-
-        foreach ($paths as $path) {
-            echo implode(',', $path) . "\n";
-        }
-
-        echo "\n";
-
-        $this->process();
-    }
-
-    private function process()
     {
         $rl = new Readline();
         do {
@@ -36,35 +22,61 @@ class App
 
             try {
                 $parsed = $this->parseInput($input);
-                echo implode(' ', $parsed) . "\n";
+                list($path, $time) = $this->process($parsed);
+
+                echo implode(' => ', $path) . " => " . $time . "\n";
             } catch (Exception $e) {
-                echo "\nPath not found\n";
+                if (!$this->isQuit($input)) {
+                    echo "Path not found\n";
+                }
             }
-        } while (false !== $input && 'quit' !== strtolower($input));
+        } while (false !== $input && !$this->isQuit($input));
     }
 
-    private function parseInput(string $input)
+    private function process(array $parsed)
+    {
+        $connections = $this->getConnections();
+        $path = ['A', 'B', 'C'];
+        $time = 500;
+        return [$path, $time];
+    }
+
+    private function isQuit($input): bool
+    {
+        return strtolower($input) == 'quit';
+    }
+
+    private function parseInput(string $input): array
     {
         $_input = strtoupper(trim($input));
-        preg_match_all("/^([A-Z]\s+[A-Z]\s+[0-9]+)$/", $_input, $parsed);
+        preg_match_all("/^([A-Z])\s+([A-Z])\s+([0-9]+)$/", $_input, $parsed);
 
-        if (count($parsed) != 2) {
-            throw new InvalidArgumentException('Invalid input');
-        }
-        if (count($parsed[1]) == 0) {
+        if (!count($parsed[0])) {
             throw new InvalidArgumentException('Invalid input');
         }
 
-        return $parsed[1];
+        return [
+            'from' => $parsed[1][0],
+            'to' => $parsed[2][0],
+            'latency' => $parsed[3][0],
+        ];
     }
 
-    private function getPaths(): Iterator
+    private function getConnections()
     {
-        if (!isset($this->__paths)) {
+        if (!count($this->__connections)) {
             $reader = Reader::createFromPath($this->file, 'r');
-            $this->__paths = $reader->getRecords();
+            $paths = $reader->getRecords();
+
+            foreach ($paths as $path) {
+                $this->__connections[] = [
+                    'from' => $path[0],
+                    'to' => $path[1],
+                    'latency' => $path[2],
+                ];
+            }
         }
 
-        return $this->__paths;
+        return $this->__connections;
     }
 }
