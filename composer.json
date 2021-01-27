@@ -1,0 +1,16 @@
+{
+    "name": "dlam/network-path-test",
+    "type": "project",
+    "authors": [
+        {
+            "name": "Doug",
+            "email": "phena109@gmail.com"
+        }
+    ],
+    "require": {},
+    "config": {
+        "platform": {
+            "php": "7.4"
+        }
+    }
+}
