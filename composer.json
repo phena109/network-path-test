@@ -8,7 +8,8 @@
         }
     ],
     "require": {
-        "league/csv": "^9.6"
+        "league/csv": "^9.6",
+        "hoa/console": "^3.17"
     },
     "config": {
         "platform": {
