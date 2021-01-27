@@ -7,10 +7,15 @@
             "email": "phena109@gmail.com"
         }
     ],
-    "require": {},
+    "require": {
+        "league/csv": "^9.6"
+    },
     "config": {
         "platform": {
             "php": "7.4"
         }
+    },
+    "autoload": {
+        "psr-4": {"phena109\\": "src/"}
     }
 }
